@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111820">
+  <meta name="description" content="DAVIS 녹화 세션의 APS 프레임과 이벤트 시각화를 나란히 비교하고 선별합니다.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/style.css">
+  <title>DAVIS 프레임 탐색기</title>
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><strong>DAVIS</strong><small>프레임 탐색기</small></div>
+      </div>
+      <div class="topbar-actions">
+        <span class="live-dot" aria-hidden="true"></span><span class="topbar-note">녹화 데이터</span>
+        <span id="accountName" class="account-name" hidden></span><button id="authButton" class="share-button" type="button">로그인</button>
+        <button class="share-button" id="shareButton" type="button" title="현재 프레임 링크 복사">↗ <span>현재 화면 공유</span></button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" aria-label="녹화 세션">
+        <div class="sidebar-heading"><div><span class="eyebrow">LIBRARY</span><h2>녹화 세션</h2></div><span class="session-total" id="sessionTotal">—</span></div>
+        <div class="sidebar-summary" id="librarySummary">세션을 불러오는 중…</div>
+        <nav id="sessionList" class="session-list" aria-label="세션 선택"></nav>
+      </aside>
+
+      <main class="workspace" id="workspace">
+        <div class="workspace-heading">
+          <div class="workspace-title"><span class="eyebrow">SESSION VIEW</span><h1 id="sessionTitle">세션을 불러오는 중…</h1><p id="sessionMeta">프레임과 이벤트를 나란히 비교합니다.</p></div>
+          <div class="heading-tools"><label class="switch-label"><input id="likedOnly" type="checkbox"><span class="switch-track"></span><span>좋아요만 보기</span></label></div>
+        </div>
+
+        <section class="viewer" aria-label="선택한 프레임 비교">
+          <div class="viewer-toolbar">
+            <div><span class="eyebrow">CURRENT PAIR</span><strong id="currentIndex">프레임 —</strong></div>
+            <div class="viewer-actions"><span id="currentTime" class="current-time">—</span><button id="likeButton" class="like-button" type="button" aria-pressed="false" disabled><span aria-hidden="true">♥</span> <span id="likeLabel">좋아요</span><span id="likeCount">0</span></button></div>
+          </div>
+          <p id="likeOwners" class="like-owners" aria-live="polite"></p>
+          <div class="viewer-modebar" role="group" aria-label="이벤트 보기 방식">
+            <button id="singleView" class="mode-button active" type="button" aria-pressed="true">이벤트 한 장</button>
+            <button id="binView" class="mode-button" type="button" aria-pressed="false">30-bin 보기</button>
+            <span class="mode-note">30-bin: 기준 시각 이전 100ms</span>
+          </div>
+          <div class="pair-grid">
+            <article class="image-panel"><div class="panel-head"><span class="panel-kicker"><span class="panel-dot frame-dot"></span> APS FRAME</span><span class="panel-number" id="frameNumber">—</span></div><div class="image-stage frame-stage"><img id="frameImage" alt="선택한 APS 프레임" draggable="false"><button id="framePrevOverlay" class="frame-step frame-step-prev" type="button" aria-label="이전 프레임" title="이전 프레임 (←)">‹</button><button id="frameNextOverlay" class="frame-step frame-step-next" type="button" aria-label="다음 프레임" title="다음 프레임 (→)">›</button></div><div class="panel-foot">원본 카메라 프레임</div></article>
+            <article class="image-panel"><div class="panel-head"><span class="panel-kicker"><span class="panel-dot event-dot"></span> <span id="eventPanelTitle">EVENT VIS</span></span><div class="event-panel-actions"><button id="binPrevButton" class="bin-step" type="button" aria-label="이전 bin" title="이전 bin (↑)" hidden>←</button><span class="panel-number" id="eventModeLabel">기록 당시 이미지</span><button id="binNextButton" class="bin-step" type="button" aria-label="다음 bin" title="다음 bin (↓)" hidden>→</button></div></div><div class="image-stage"><img id="eventImage" alt="선택한 프레임의 이벤트 시각화" draggable="false"></div><div class="panel-foot"><span class="red-key"></span> ON <span class="blue-key"></span> OFF <span class="foot-spacer"></span><span id="eventFoot">저장된 시각화</span></div></article>
+          </div>
+          <div class="viewer-bottom">
+            <div class="transport"><button id="prevButton" type="button" title="이전 프레임 (←)" aria-label="이전 프레임">←</button><div class="frame-progress"><input id="frameRange" type="range" min="0" max="0" value="0" aria-label="프레임 위치"><div class="progress-numbers"><span>1</span><span id="rangeEnd">—</span></div></div><button id="nextButton" type="button" title="다음 프레임 (→)" aria-label="다음 프레임">→</button><label class="jump-label"># <input id="frameJump" type="number" min="0" step="1" aria-label="프레임 번호로 이동"></label></div>
+            <div class="event-controls"><div class="event-controls-head"><label for="windowInput">이벤트 누적 시간</label><button id="resetEvent" type="button">기록 이미지로 되돌리기</button></div><div class="window-inputs"><input id="windowRange" type="range" min="0" max="1000" value="0" aria-label="이벤트 누적 시간 조절"><div class="number-unit"><input id="windowInput" type="number" min="0.01" max="3" step="0.001" value="0.033" aria-label="이벤트 누적 시간, 초"><span>초</span></div></div><div class="window-scale"><span>0.01초</span><span>0.1초</span><span>1초</span><span>3초</span></div></div>
+          </div>
+          <section id="binPanel" class="bin-panel" aria-label="30개 이벤트 시간 bin" hidden>
+            <div class="bin-heading"><div><span class="eyebrow">RAW EVENTS · PREVIOUS 100 MS</span><h2>30개 시간 bin</h2><p id="binAlignment">기준 시각을 계산하는 중…</p></div><div class="bin-heading-right"><button id="binCollapseButton" class="bin-collapse" type="button" aria-expanded="true" aria-controls="binGridWrap">접기 ↑</button><span>6열 × 5행</span><small>모든 칸에 같은 빨강·파랑 밝기 적용</small></div></div>
+            <div id="binGridWrap"><p id="binStatus" class="bin-status" role="status">이벤트를 불러오는 중…</p><div id="binGrid" class="bin-grid"></div></div>
+          </section>
+        </section>
+
+        <section class="gallery" aria-label="프레임 목록"><div class="gallery-heading"><div><span class="eyebrow">EXPLORE</span><h2>프레임 목록 <span id="resultCount">—</span></h2></div><div class="gallery-tools"><label for="sortSelect">정렬</label><select id="sortSelect"><option value="time">시간순</option><option value="likes">좋아요순</option></select></div></div><div id="galleryGrid" class="gallery-grid"></div><div id="emptyState" class="empty-state" hidden>좋아요를 받은 프레임이 없습니다. 마음에 드는 프레임에 좋아요를 눌러보세요.</div><div class="pagination"><button id="pagePrev" type="button">이전</button><span id="pageLabel">—</span><button id="pageNext" type="button">다음</button></div></section>
+      </main>
+    </div>
+  </div>
+  <dialog id="authDialog" class="auth-dialog" aria-labelledby="authTitle"><form id="authForm"><h2 id="authTitle">로그인</h2><p>이름과 비밀번호를 입력하면 좋아요를 남길 수 있습니다.</p><label>아이디<input id="authUsername" name="username" autocomplete="username" required></label><label>비밀번호<input id="authPassword" name="password" type="password" autocomplete="current-password" required></label><p id="authError" class="auth-error" role="alert"></p><div class="auth-actions"><button id="authCancel" type="button">취소</button><button id="authSubmit" type="submit">로그인</button></div></form></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
